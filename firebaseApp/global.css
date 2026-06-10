@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 37 99 235;
+    /* Blue 600 */
+    --secondary: 30 64 175;
+    /* Blue 800 */
+    --background: 248 250 252;
+    /* Slate 50 */
+    --foreground: 15 23 42;
+    /* Slate 900 */
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+  }
+
+  .dark {
+    --primary: 59 130 246;
+    /* Blue 500 for better visibility in dark mode */
+    --secondary: 30 64 175;
+    --background: 2 6 23;
+    /* Slate 950 */
+    --foreground: 248 250 252;
+    --card: 15 23 42;
+    /* Slate 900 */
+    --card-foreground: 248 250 252;
+  }
+}
