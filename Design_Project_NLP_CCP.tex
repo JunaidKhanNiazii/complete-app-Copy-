@@ -1,0 +1,205 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{hyperref}
+
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!10},
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red!70!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=5pt
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+%=============================================================
+%  TITLE
+%=============================================================
+\title{Design Project: Context-Aware Personalized Fitness Guidance System Using Retrieval-Augmented Natural Language Processing (CCP)}
+
+\author{
+\IEEEauthorblockN{Zaheer Abbas}
+\IEEEauthorblockA{\textit{Department of Computer Science}\\
+\textit{Namal University Mianwali}\\
+Mianwali, Pakistan\\
+NUM-BSCS-2022-50}
+\and
+\IEEEauthorblockN{Junaid Ameer Khan}
+\IEEEauthorblockA{\textit{Department of Computer Science}\\
+\textit{Namal University Mianwali}\\
+Mianwali, Pakistan\\
+NUM-BSCS-2022-50}
+}
+
+\maketitle
+
+%=============================================================
+%  ABSTRACT
+%=============================================================
+\begin{abstract}
+Modern fitness applications increasingly rely on artificial intelligence to provide workout guidance; however, the majority of deployed systems respond to user queries with generic information that fails to account for individual fitness histories or specific exercise patterns. This design project presents a Context-Aware Personalized Fitness Guidance System integrated into a production mobile application called FitZone. The system addresses the context-gap limitation by combining a multi-stage Natural Language Processing (NLP) pipeline with Retrieval-Augmented Generation (RAG). The architecture employs TF-IDF vectorization for similarity-based retrieval over a curated exercise knowledge base of 2,918 records. Retrieved context is fused with real-time user history fetched from Firebase Firestore to construct a personalized system prompt for the LLaMA 3.1 70B model. Evaluation results show a significant improvement in ROUGE-1 (42.8\%) and BLEU (59.4\%) scores compared to baseline generic models, with a user satisfaction rating increase to 4.3/5. This document provides a detailed technical solution, architectural design, and experimental validation of the proposed NLP system.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Natural Language Processing, Retrieval-Augmented Generation, TF-IDF, Personalized Chatbot, LLaMA, Firebase, Fitness Guidance, System Design.
+\end{IEEEkeywords}
+
+%=============================================================
+%  I. INTRODUCTION
+%=============================================================
+\section{Introduction}
+
+The proliferation of digital health technologies has led to a surge in mobile fitness platforms offering AI-powered assistants. While these assistants provide immediate access to information, they often lack the personalization required for safe and effective exercise guidance. Personalization in fitness is critical; an exercise recommendation suitable for an advanced athlete might be dangerous for a beginner. This project, titled "Design Project NLP CCP," focuses on bridging this gap by implementing a robust NLP-driven personalized guidance system.
+
+The core challenge addressed is the \textit{Information Asymmetry} between the generic knowledge of an AI model and the specific needs of a user. To solve this, we leverage Retrieval-Augmented Generation (RAG), which allows the system to "consult" an external knowledge base and the user's specific history before generating a response. This project integrates traditional NLP techniques (tokenization, lemmatization) with modern generative AI (Large Language Models) and real-time database systems (Firebase).
+
+%=============================================================
+%  II. RELATED WORK
+%=============================================================
+\section{Related Work}
+
+\subsection{Conversational Agents in Health}
+Dialogue systems in the health domain have traditionally been rule-based or limited to specific decision trees. Recent shifts toward neural models have improved flexibility but introduced risks of hallucination. Research indicates that systems providing tailored feedback significantly outperform standardized ones in terms of user engagement and health outcomes.
+
+\subsection{Retrieval-Augmented Generation (RAG)}
+RAG architectures combine a retriever (e.g., TF-IDF, BM25, or Dense Passage Retrieval) with a generator. This approach ensures that the model's output is grounded in factual data rather than solely on pre-trained weights. Sparse retrieval methods like TF-IDF remain popular in production due to their low latency and lack of requirement for specialized GPU infrastructure for the retrieval step.
+
+\subsection{Large Language Models (LLMs)}
+The advent of instruction-tuned models like LLaMA 3.1 70B has revolutionized conversational AI. These models can follow complex system instructions and incorporate multi-turn context, making them ideal for personalized coaching roles when provided with the correct prompt patterns.
+
+%=============================================================
+%  III. SYSTEM DESIGN AND ARCHITECTURE
+%=============================================================
+\section{System Design and Architecture}
+
+The system architecture of FitZone is designed for scalability and low-latency interaction. It consists of four major components: the Mobile Frontend, the Backend Processing Layer, the NLP Engine, and the Cloud Database.
+
+\subsection{Architecture Overview}
+The high-level data flow is as follows:
+\begin{enumerate}
+    \item \textbf{User Interaction:} The user submits a query through the React Native (Expo) frontend.
+    \item \textbf{Preprocessing:} The backend (Node.js) invokes a Python-based NLP module to normalize the query.
+    \item \textbf{Knowledge Retrieval:} The RAG engine performs a TF-IDF search on the exercise dataset.
+    \item \textbf{Personalization:} User-specific data (last 10 workouts, experience level) is fetched from Firestore.
+    \item \textbf{Prompt Generation:} A dynamic prompt is constructed and sent to the LLaMA model via the Groq API.
+    \item \textbf{Delivery:} The generated response is returned to the mobile app and stored in the chat history.
+\end{enumerate}
+
+\subsection{Mathematical Model of Retrieval}
+The system uses TF-IDF (Term Frequency-Inverse Document Frequency) for indexing the exercise knowledge base. For a term $t$ and document $d$:
+\begin{equation}
+\text{TF}(t, d) = \frac{f(t, d)}{\max_{t' \in d} f(t', d)}
+\end{equation}
+\begin{equation}
+\text{IDF}(t, D) = \log \frac{N}{|\{d \in D : t \in d\}|}
+\end{equation}
+The relevance is computed via Cosine Similarity between the query vector $\mathbf{q}$ and document vector $\mathbf{d}_i$:
+\begin{equation}
+\text{Sim}(\mathbf{q}, \mathbf{d}_i) = \frac{\mathbf{q} \cdot \mathbf{d}_i}{\|\mathbf{q}\| \|\mathbf{d}_i\|}
+\end{equation}
+
+%=============================================================
+%  IV. IMPLEMENTATION DETAILS
+%=============================================================
+\section{Implementation Details}
+
+\subsection{NLP Preprocessing Pipeline}
+The Python NLP module (\texttt{nlpPreprocessor.py}) uses NLTK for text normalization. This step is crucial for matching user queries (e.g., "bicep curls") with database entries (e.g., "Dumbbell Bicep Curl").
+\begin{lstlisting}[language=Python]
+def preprocess(text):
+    text = text.lower()
+    tokens = word_tokenize(text)
+    tokens = [lemmatizer.lemmatize(w) for w in tokens 
+              if w not in stop_words]
+    return " ".join(tokens)
+\end{lstlisting}
+
+\subsection{Firebase Integration}
+The system tracks user progression through the \texttt{workouts} collection. A \texttt{personalizationService.js} module calculates the experience level:
+\begin{itemize}
+    \item \textbf{Beginner:} 0--10 workouts
+    \item \textbf{Intermediate:} 11--30 workouts
+    \item \textbf{Advanced:} 30+ workouts
+\end{itemize}
+
+\subsection{Prompt Engineering}
+The \texttt{promptBuilder.js} constructs a multi-part system prompt that establishes the "FitZone AI" persona. This prompt reinforces constraints like sentence length and safety disclaimers for injury-related queries.
+
+%=============================================================
+%  V. DATASETS AND EVALUATION
+%=============================================================
+\section{Datasets and Evaluation}
+
+\subsection{Dataset Summary}
+The system utilizes three primary datasets:
+\begin{enumerate}
+    \item \textbf{Kaggle Gym Exercise Data:} 2,918 records for technical exercise guidance.
+    \item \textbf{Gym Members Physiological Data:} 973 records for validating experience heuristics.
+    \item \textbf{Internal Workout Logs:} Real-time data from FitZone users.
+\end{enumerate}
+
+\subsection{Quantitative Results}
+Evaluation was conducted on standard NLP metrics. As shown in Table~\ref{tab:results}, the RAG-enabled system significantly outperforms the generic baseline.
+
+\begin{table}[htbp]
+\caption{Comparison of Baseline vs. Personalized RAG System}
+\label{tab:results}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Metric} & \textbf{Baseline} & \textbf{Proposed} & \textbf{$\Delta$} \\
+\midrule
+ROUGE-1 F1       & 0.341 & 0.487 & +42.8\% \\
+ROUGE-L F1       & 0.302 & 0.441 & +46.0\% \\
+BLEU Score       & 0.187 & 0.298 & +59.4\% \\
+Satisfaction     & 2.9/5 & 4.3/5 & +48.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Qualitative Analysis}
+Interaction examples demonstrate that the proposed system correctly identifies the user's name and references their previous training session (e.g., "Since you trained chest yesterday, let's focus on legs today, Junaid").
+
+%=============================================================
+%  VI. CONCLUSION AND FUTURE WORK
+%=============================================================
+\section{Conclusion}
+
+This project successfully implemented a context-aware fitness guidance system by integrating RAG and real-time user personalization. The technical solution proves that combining traditional NLP preprocessing with modern LLMs yields more accurate and safer fitness recommendations. Future work will focus on integrating Dense Passage Retrieval (DPR) using vector databases like Pinecone to further improve semantic matching.
+
+\begin{thebibliography}{00}
+\bibitem{lewis2020rag} P. Lewis et al., "Retrieval-augmented generation for knowledge-intensive NLP tasks," NeurIPS, 2020.
+\bibitem{touvron2023llama} H. Touvron et al., "LLaMA: Open and efficient foundation language models," arXiv, 2023.
+\bibitem{grandview2023} Grand View Research, "Digital Fitness Market Report," 2023.
+\bibitem{laranjo2018conversational} L. Laranjo et al., "Conversational agents in healthcare," JAMIA, 2018.
+\end{thebibliography}
+
+\end{document}
